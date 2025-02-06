@@ -1,0 +1,8 @@
+pandas
+numpy
+pyyaml
+boto3
+sqlalchemy
+psycopg2-binary
+fastapi
+uvicorn

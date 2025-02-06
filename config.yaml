@@ -1,0 +1,17 @@
+aws:
+  s3_bucket: "buitrix-challenge-01"
+  carbon_footprint_prefix: "cfp-data"
+  region_name: "us-east-1"
+  access_key: "YOUR_AWS_ACCESS_KEY"
+  secret_key: "YOUR_AWS_SECRET_KEY"
+
+database:
+  host: "localhost"
+  port: 
+  user: ""
+  password: ""
+  dbname: ""
+
+data:
+  energy_excel: "PATH"
+  carbon_data_url: "LINK"
