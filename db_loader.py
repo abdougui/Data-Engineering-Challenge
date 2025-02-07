@@ -12,7 +12,7 @@ def create_primary_tables(db_config: dict):
 
     Table('Power_Table', metadata,
           Column('timestamp', DateTime, primary_key=True),
-          Column('hvac_power_kw', Float, nullable=False))
+          Column('HVAC_Power_kW', Float, nullable=False))
 
     Table('CFP_Table', metadata,
           Column('timestamp', DateTime, primary_key=True),

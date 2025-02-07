@@ -3,6 +3,7 @@ import pandas as pd
 import logging
 from io import StringIO
 import requests
+import boto3
 def load_energy_data(excel_file_path: str) -> dict:
     try:
         xls = pd.ExcelFile(excel_file_path)
@@ -43,33 +44,41 @@ def load_energy_data(excel_file_path: str) -> dict:
 
 
 
-def load_carbon_footprint_data(aws_config: dict, file_path: str = None) -> pd.DataFrame:
+def load_carbon_footprint_data(aws_config: dict, file_path: str = None,aws_fetch: bool=False) -> pd.DataFrame:
     try:
-        # s3 = boto3.client(
-        #     's3',
-        #     aws_access_key_id=aws_config['access_key'],
-        #     aws_secret_access_key=aws_config['secret_key'],
-        #     region_name=aws_config.get('region_name', 'us-east-1')
-        # )
-        # bucket = aws_config['s3_bucket']
-        # if not file_path:
-        #     file_path = "carbon-footprint/2024/01/15/entsoe.csv"
-        # response = s3.get_object(Bucket=bucket, Key=file_path)
-        # content = response['Body'].read().decode('utf-8')
-        # df = pd.read_csv(StringIO(content))]
-        all_data = []  # List to store individual DataFrames
-
+        file_path='data/entsoe.csv'
+        
+        if os.path.exists(file_path):
+            logging.info(f"File found locally: {file_path}")
+            return pd.read_csv(file_path)
+        
+        all_data=[]
         for month in range(1, 13):
             for day in range(1, 32):
-                try:
-                    url = f"https://buitrix-challenge-01.s3.amazonaws.com/cfp-data/month={month}/day={day}/entsoe.csv"
-                    response = requests.get(url)
-                    response.raise_for_status()  # Raise HTTP errors (404, 500, etc.)
-                    df = pd.read_csv(StringIO(response.text))
-                    all_data.append(df)  # Append to the list
-                except Exception as e:
-                    print(e)
-                    continue
+                if aws_fetch:
+                    s3 = boto3.client(
+                        's3',
+                        aws_access_key_id=aws_config['access_key'],
+                        aws_secret_access_key=aws_config['secret_key'],
+                        region_name=aws_config.get('region_name', 'us-east-1')
+                    )
+                    bucket = aws_config['s3_bucket']
+                    if not file_path:
+                        file_path = f"carbon-footprint/2022/{month}/{day}/entsoe.csv"
+                    response = s3.get_object(Bucket=bucket, Key=file_path)
+                    content = response['Body'].read().decode('utf-8')
+                    df = pd.read_csv(StringIO(content))
+                    all_data.append(df)
+                else:
+                    try:
+                        url = f"https://buitrix-challenge-01.s3.amazonaws.com/cfp-data/month={month}/day={day}/entsoe.csv"
+                        response = requests.get(url)
+                        response.raise_for_status()  # Raise HTTP errors (404, 500, etc.)
+                        df = pd.read_csv(StringIO(response.text))
+                        # Append to the list
+                    except Exception as e:
+                        print(e)
+                        continue
         logging.info("Loaded carbon footprint data from %s", file_path)
         if all_data:
             final_df = pd.concat(all_data, ignore_index=True)
